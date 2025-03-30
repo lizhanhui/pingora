@@ -88,8 +88,8 @@ pub struct HttpSession {
     send_response_body: Option<SendStream<Bytes>>,
     // Remember what has been written
     response_written: Option<Box<ResponseHeader>>,
-    // Indicate that whether a END_STREAM is already sent
-    // in order to tell whether needs to send one extra FRAME when this response finishes
+    // Indicate that whether an END_STREAM is already sent
+    // in order to tell whether it needs to send one extra FRAME when this response finishes
     ended: bool,
     // How many (application, not wire) request body bytes have been read so far.
     body_read: usize,

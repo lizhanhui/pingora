@@ -74,6 +74,7 @@ mod proxy_h2;
 mod proxy_purge;
 mod proxy_trait;
 mod subrequest;
+mod mqtt;
 
 use subrequest::Ctx as SubReqCtx;
 
@@ -83,6 +84,7 @@ pub use proxy_trait::{FailToProxy, ProxyHttp};
 
 pub mod prelude {
     pub use crate::{http_proxy_service, ProxyHttp, Session};
+    pub use crate::mqtt::{mqtt_proxy_service, MqttProxy};
 }
 
 /// The concrete type that holds the user defined HTTP proxy.

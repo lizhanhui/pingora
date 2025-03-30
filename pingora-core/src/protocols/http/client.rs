@@ -21,7 +21,7 @@ use super::v1::client::HttpSession as Http1Session;
 use super::v2::client::Http2Session;
 use crate::protocols::{Digest, SocketAddr, Stream};
 
-/// A type for Http client session. It can be either an Http1 connection or an Http2 stream.
+/// A type for Http client session. It can be either a Http1 connection or a Http2 stream.
 pub enum HttpSession {
     H1(Http1Session),
     H2(Http2Session),
