@@ -21,7 +21,7 @@ use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::Result;
 use pingora_http::RequestHeader;
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 // This example shows how to build and import 3rd party modules
 
@@ -81,7 +81,7 @@ mod my_acl {
 pub struct MyProxy;
 
 #[async_trait]
-impl ProxyHttp for MyProxy {
+impl Proxy for MyProxy {
     type CTX = ();
     fn new_ctx(&self) -> Self::CTX {}
 

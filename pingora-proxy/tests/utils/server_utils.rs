@@ -37,7 +37,7 @@ use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::utils::tls::CertKey;
 use pingora_error::{Error, ErrorSource, Result};
 use pingora_http::{RequestHeader, ResponseHeader};
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::thread;
@@ -109,7 +109,7 @@ fn response_filter_common(
 
 #[async_trait]
 #[cfg(feature = "any_tls")]
-impl ProxyHttp for ExampleProxyHttps {
+impl Proxy for ExampleProxyHttps {
     type CTX = CTX;
     fn new_ctx(&self) -> Self::CTX {
         CTX::default()
@@ -207,7 +207,7 @@ impl ProxyHttp for ExampleProxyHttps {
 pub struct ExampleProxyHttp {}
 
 #[async_trait]
-impl ProxyHttp for ExampleProxyHttp {
+impl Proxy for ExampleProxyHttp {
     type CTX = CTX;
     fn new_ctx(&self) -> Self::CTX {
         CTX::default()
@@ -342,7 +342,7 @@ pub struct CacheCTX {
 pub struct ExampleProxyCache {}
 
 #[async_trait]
-impl ProxyHttp for ExampleProxyCache {
+impl Proxy for ExampleProxyCache {
     type CTX = CacheCTX;
     fn new_ctx(&self) -> Self::CTX {
         CacheCTX {

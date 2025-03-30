@@ -25,7 +25,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> (bool, bool, Option<Box<Error>>)
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         client_session.read_timeout = peer.options.read_timeout;
@@ -113,7 +113,7 @@ impl<SV> HttpProxy<SV> {
     ) -> (bool, bool, Option<Box<Error>>)
     // (reuse_server, reuse_client, error)
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         #[cfg(windows)]
@@ -149,7 +149,7 @@ impl<SV> HttpProxy<SV> {
         mut rx: mpsc::Receiver<HttpTask>,
     ) -> Result<()>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         let mut request_done = false;
@@ -213,7 +213,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> Result<bool>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         let mut downstream_state = DownstreamStateMachine::new(session.as_mut().is_body_done());
@@ -444,7 +444,7 @@ impl<SV> HttpProxy<SV> {
         from_cache: bool, // are the task from cache already
     ) -> Result<HttpTask>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         // skip caching if already served from cache
@@ -550,7 +550,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> Result<bool>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         // None: end of body

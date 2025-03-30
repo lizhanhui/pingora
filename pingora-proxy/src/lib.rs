@@ -27,7 +27,7 @@
 //!
 //! # How to use
 //!
-//! Users of this crate defines their proxy by implementing [ProxyHttp] trait, which contains the
+//! Users of this crate defines their proxy by implementing [Proxy] trait, which contains the
 //! callbacks to be invoked at each stage of a HTTP request.
 //!
 //! Then the service can be passed into [`http_proxy_service()`] for a [pingora_core::server::Server] to
@@ -80,10 +80,10 @@ use subrequest::Ctx as SubReqCtx;
 
 pub use proxy_cache::range_filter::{range_header_filter, RangeType};
 pub use proxy_purge::PurgeStatus;
-pub use proxy_trait::{FailToProxy, ProxyHttp};
+pub use proxy_trait::{FailToProxy, Proxy};
 
 pub mod prelude {
-    pub use crate::{http_proxy_service, ProxyHttp, Session};
+    pub use crate::{http_proxy_service, Proxy, Session};
     pub use crate::mqtt::{mqtt_proxy_service, MqttProxy};
 }
 
@@ -113,7 +113,7 @@ impl<SV> HttpProxy<SV> {
 
     fn handle_init_modules(&mut self)
     where
-        SV: ProxyHttp,
+        SV: Proxy,
     {
         self.inner
             .init_downstream_modules(&mut self.downstream_modules);
@@ -124,7 +124,7 @@ impl<SV> HttpProxy<SV> {
         mut downstream_session: Box<HttpSession>,
     ) -> Option<Box<HttpSession>>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         // phase 1 read request header
@@ -174,7 +174,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> (bool, Option<Box<Error>>)
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         let peer = match self.inner.upstream_peer(session, ctx).await {
@@ -251,7 +251,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> Result<()>
     where
-        SV: ProxyHttp,
+        SV: Proxy,
     {
         match task {
             HttpTask::Header(header, _eos) => {
@@ -278,7 +278,7 @@ impl<SV> HttpProxy<SV> {
         error: Option<&Error>,
     ) -> Option<Stream>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         self.inner.logging(&mut session, error, ctx).await;
@@ -484,11 +484,11 @@ impl<SV> HttpProxy<SV> {
     async fn process_request(
         self: &Arc<Self>,
         mut session: Session,
-        mut ctx: <SV as ProxyHttp>::CTX,
+        mut ctx: <SV as Proxy>::CTX,
     ) -> Option<Stream>
     where
-        SV: ProxyHttp + Send + Sync + 'static,
-        <SV as ProxyHttp>::CTX: Send + Sync,
+        SV: Proxy + Send + Sync + 'static,
+        <SV as Proxy>::CTX: Send + Sync,
     {
         if let Err(e) = self
             .inner
@@ -678,13 +678,13 @@ impl<SV> HttpProxy<SV> {
     async fn handle_error(
         &self,
         mut session: Session,
-        ctx: &mut <SV as ProxyHttp>::CTX,
+        ctx: &mut <SV as Proxy>::CTX,
         e: Box<Error>,
         context: &str,
     ) -> Option<Stream>
     where
-        SV: ProxyHttp + Send + Sync + 'static,
-        <SV as ProxyHttp>::CTX: Send + Sync,
+        SV: Proxy + Send + Sync + 'static,
+        <SV as Proxy>::CTX: Send + Sync,
     {
         let res = self.inner.fail_to_proxy(&mut session, &e, ctx).await;
         if !self.inner.suppress_error_log(&session, ctx, &e) {
@@ -727,8 +727,8 @@ trait Subrequest {
 #[async_trait]
 impl<SV> Subrequest for HttpProxy<SV>
 where
-    SV: ProxyHttp + Send + Sync + 'static,
-    <SV as ProxyHttp>::CTX: Send + Sync,
+    SV: Proxy + Send + Sync + 'static,
+    <SV as Proxy>::CTX: Send + Sync,
 {
     async fn process_subrequest(
         self: &Arc<Self>,
@@ -756,8 +756,8 @@ where
 #[async_trait]
 impl<SV> HttpServerApp for HttpProxy<SV>
 where
-    SV: ProxyHttp + Send + Sync + 'static,
-    <SV as ProxyHttp>::CTX: Send + Sync,
+    SV: Proxy + Send + Sync + 'static,
+    <SV as Proxy>::CTX: Send + Sync,
 {
     async fn process_new_http(
         self: &Arc<Self>,
@@ -800,17 +800,17 @@ where
 
 use pingora_core::services::listening::Service;
 
-/// Create a [Service] from the user implemented [ProxyHttp].
+/// Create a [Service] from the user implemented [Proxy].
 ///
 /// The returned [Service] can be hosted by a [pingora_core::server::Server] directly.
 pub fn http_proxy_service<SV>(conf: &Arc<ServerConf>, inner: SV) -> Service<HttpProxy<SV>>
 where
-    SV: ProxyHttp,
+    SV: Proxy,
 {
     http_proxy_service_with_name(conf, inner, "Pingora HTTP Proxy Service")
 }
 
-/// Create a [Service] from the user implemented [ProxyHttp].
+/// Create a [Service] from the user implemented [Proxy].
 ///
 /// The returned [Service] can be hosted by a [pingora_core::server::Server] directly.
 pub fn http_proxy_service_with_name<SV>(
@@ -819,7 +819,7 @@ pub fn http_proxy_service_with_name<SV>(
     name: &str,
 ) -> Service<HttpProxy<SV>>
 where
-    SV: ProxyHttp,
+    SV: Proxy,
 {
     let mut proxy = HttpProxy::new(inner, conf.clone());
     proxy.handle_init_modules();

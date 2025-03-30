@@ -32,7 +32,7 @@ impl<SV> HttpProxy<SV> {
     ) -> Option<(bool, Option<Box<Error>>)>
     // None: continue to proxy, Some: return
     where
-        SV: ProxyHttp + Send + Sync + 'static,
+        SV: Proxy + Send + Sync + 'static,
         SV::CTX: Send + Sync,
     {
         // Cache logic request phase
@@ -254,7 +254,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> (bool, Option<Box<Error>>)
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         use range_filter::*;
@@ -385,7 +385,7 @@ impl<SV> HttpProxy<SV> {
         resp: &mut ResponseHeader,
         ctx: &mut SV::CTX,
     ) where
-        SV: ProxyHttp,
+        SV: Proxy,
     {
         // TODO: range
         let req = session.req_header();
@@ -431,7 +431,7 @@ impl<SV> HttpProxy<SV> {
         serve_from_cache: &mut ServeFromCache,
     ) -> Result<()>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         if !session.cache.enabled() && !session.cache.bypassing() {
@@ -590,7 +590,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> bool
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         if !session.cache.enabled() {
@@ -713,7 +713,7 @@ impl<SV> HttpProxy<SV> {
         error: &Error,
     ) -> Option<(bool, Option<Box<Error>>)>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         // the caller might already checked this as an optimization
@@ -755,7 +755,7 @@ impl<SV> HttpProxy<SV> {
         lock_status: LockStatus,
     ) -> bool
     where
-        SV: ProxyHttp,
+        SV: Proxy,
     {
         debug!("cache unlocked {lock_status:?}");
         match lock_status {

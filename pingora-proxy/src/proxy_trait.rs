@@ -23,13 +23,13 @@ use std::time::Duration;
 
 /// The interface to control the HTTP proxy
 ///
-/// The methods in [ProxyHttp] are filters/callbacks which will be performed on all requests at their
+/// The methods in [Proxy] are filters/callbacks which will be performed on all requests at their
 /// particular stage (if applicable).
 ///
 /// If any of the filters returns [Result::Err], the request will fail, and the error will be logged.
 #[cfg_attr(not(doc_async_trait), async_trait)]
-pub trait ProxyHttp {
-    /// The per request object to share state across the different filters
+pub trait Proxy {
+    /// The per-request object to share state across the different filters
     type CTX;
 
     /// Define how the `ctx` should be created.

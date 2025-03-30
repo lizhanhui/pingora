@@ -66,7 +66,7 @@ impl<SV> HttpProxy<SV> {
         ctx: &mut SV::CTX,
     ) -> Option<(bool, Option<Box<Error>>)>
     where
-        SV: ProxyHttp + Send + Sync,
+        SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
     {
         let purge_status = if session.cache.enabled() {

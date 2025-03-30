@@ -21,7 +21,7 @@ use pingora_core::server::configuration::Opt;
 use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::Result;
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 // global counter
 static REQ_COUNTER: Mutex<usize> = Mutex::new(0);
@@ -41,7 +41,7 @@ fn check_beta_user(req: &pingora_http::RequestHeader) -> bool {
 }
 
 #[async_trait]
-impl ProxyHttp for MyProxy {
+impl Proxy for MyProxy {
     type CTX = MyCtx;
     fn new_ctx(&self) -> Self::CTX {
         MyCtx { beta_user: false }

@@ -5,7 +5,7 @@ use pingora_http::{RequestHeader, ResponseHeader};
 use pingora_limits::rate::Rate;
 use pingora_load_balancing::prelude::{RoundRobin, TcpHealthCheck};
 use pingora_load_balancing::LoadBalancer;
-use pingora_proxy::{http_proxy_service, ProxyHttp, Session};
+use pingora_proxy::{http_proxy_service, Proxy, Session};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -56,7 +56,7 @@ static RATE_LIMITER: Lazy<Rate> = Lazy::new(|| Rate::new(Duration::from_secs(1))
 static MAX_REQ_PER_SEC: isize = 1;
 
 #[async_trait]
-impl ProxyHttp for LB {
+impl Proxy for LB {
     type CTX = ();
 
     fn new_ctx(&self) {}

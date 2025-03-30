@@ -23,7 +23,7 @@ use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::Result;
 use pingora_http::ResponseHeader;
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 fn check_login(req: &pingora_http::RequestHeader) -> bool {
     // implement you logic check logic here
@@ -35,7 +35,7 @@ pub struct MyGateway {
 }
 
 #[async_trait]
-impl ProxyHttp for MyGateway {
+impl Proxy for MyGateway {
     type CTX = ();
     fn new_ctx(&self) -> Self::CTX {}
 

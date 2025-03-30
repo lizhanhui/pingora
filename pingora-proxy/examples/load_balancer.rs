@@ -23,12 +23,12 @@ use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::Result;
 use pingora_load_balancing::{health_check, selection::RoundRobin, LoadBalancer};
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 pub struct LB(Arc<LoadBalancer<RoundRobin>>);
 
 #[async_trait]
-impl ProxyHttp for LB {
+impl Proxy for LB {
     type CTX = ();
     fn new_ctx(&self) -> Self::CTX {}
 

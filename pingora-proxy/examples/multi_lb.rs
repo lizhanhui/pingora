@@ -21,7 +21,7 @@ use pingora_load_balancing::{
     selection::{BackendIter, BackendSelection, RoundRobin},
     LoadBalancer,
 };
-use pingora_proxy::{http_proxy_service, ProxyHttp, Session};
+use pingora_proxy::{http_proxy_service, Proxy, Session};
 
 struct Router {
     cluster_one: Arc<LoadBalancer<RoundRobin>>,
@@ -29,7 +29,7 @@ struct Router {
 }
 
 #[async_trait]
-impl ProxyHttp for Router {
+impl Proxy for Router {
     type CTX = ();
     fn new_ctx(&self) {}
 

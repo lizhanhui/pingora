@@ -22,7 +22,7 @@ use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::Result;
 use pingora_core::{prelude::Opt, Error};
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 /// This example shows how to setup retry-able errors with a backoff policy
 
@@ -34,7 +34,7 @@ struct RetryCtx {
 struct BackoffRetryProxy;
 
 #[async_trait]
-impl ProxyHttp for BackoffRetryProxy {
+impl Proxy for BackoffRetryProxy {
     type CTX = RetryCtx;
     fn new_ctx(&self) -> Self::CTX {
         Self::CTX::default()

@@ -25,14 +25,14 @@ use pingora_core::{
     },
     prelude::Opt,
 };
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 // This example shows how to use the gRPC-web bridge module
 
 pub struct GrpcWebBridgeProxy;
 
 #[async_trait]
-impl ProxyHttp for GrpcWebBridgeProxy {
+impl Proxy for GrpcWebBridgeProxy {
     type CTX = ();
     fn new_ctx(&self) -> Self::CTX {}
 

@@ -23,7 +23,7 @@ use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_core::Result;
 use pingora_http::ResponseHeader;
-use pingora_proxy::{ProxyHttp, Session};
+use pingora_proxy::{Proxy, Session};
 
 const HOST: &str = "ip.jsontest.com";
 
@@ -41,7 +41,7 @@ pub struct MyCtx {
 }
 
 #[async_trait]
-impl ProxyHttp for Json2Yaml {
+impl Proxy for Json2Yaml {
     type CTX = MyCtx;
     fn new_ctx(&self) -> Self::CTX {
         MyCtx { buffer: vec![] }
