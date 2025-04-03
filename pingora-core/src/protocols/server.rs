@@ -14,10 +14,10 @@
 
 //! HTTP server session APIs
 
-use super::error_resp;
-use super::v1::server::HttpSession as SessionV1;
-use super::v2::server::HttpSession as SessionV2;
-use super::HttpTask;
+use crate::protocols::http::error_resp;
+use crate::protocols::http::v1::server::HttpSession as SessionV1;
+use crate::protocols::http::v2::server::HttpSession as SessionV2;
+use crate::protocols::http::HttpTask;
 use crate::protocols::{Digest, SocketAddr, Stream};
 use bytes::Bytes;
 use http::HeaderValue;

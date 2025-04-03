@@ -18,6 +18,7 @@ mod digest;
 pub mod http;
 pub mod l4;
 pub mod raw_connect;
+pub mod server;
 pub mod tls;
 #[cfg(windows)]
 mod windows;

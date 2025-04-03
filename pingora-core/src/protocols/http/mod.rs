@@ -21,11 +21,10 @@ pub mod compression;
 pub mod conditional_filter;
 pub(crate) mod date;
 pub mod error_resp;
-pub mod server;
 pub mod v1;
 pub mod v2;
 
-pub use server::ServerSession;
+pub use crate::protocols::server::ServerSession;
 
 /// The Pingora server name string
 pub const SERVER_NAME: &[u8; 7] = b"Pingora";
