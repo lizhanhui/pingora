@@ -19,12 +19,14 @@ use std::time::Duration;
 
 use crate::protocols::http::v1::client::HttpSession as Http1Session;
 use crate::protocols::http::v2::client::Http2Session;
+use crate::protocols::mqtt::client::MqttSession;
 use crate::protocols::{Digest, SocketAddr, Stream};
 
 /// A type for Http client session. It can be either a Http1 connection or a Http2 stream.
 pub enum ClientSession {
     H1(Http1Session),
     H2(Http2Session),
+    MQTT(MqttSession),
 }
 
 impl ClientSession {
@@ -32,6 +34,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => Some(s),
             Self::H2(_) => None,
+            Self::MQTT(_) => None,
         }
     }
 
@@ -39,6 +42,7 @@ impl ClientSession {
         match self {
             Self::H1(_) => None,
             Self::H2(s) => Some(s),
+            Self::MQTT(_) => None,
         }
     }
     /// Write the request header to the server
@@ -51,6 +55,7 @@ impl ClientSession {
                 Ok(())
             }
             ClientSession::H2(h2) => h2.write_request_header(req, false),
+            ClientSession::MQTT(session) => Ok(()),
         }
     }
 
@@ -63,6 +68,7 @@ impl ClientSession {
                 Ok(())
             }
             ClientSession::H2(h2) => h2.write_request_body(data, end).await,
+            ClientSession::MQTT(mqtt) => mqtt.write_request(data, end).await,
         }
     }
 
@@ -74,6 +80,7 @@ impl ClientSession {
                 Ok(())
             }
             ClientSession::H2(h2) => h2.finish_request_body(),
+            ClientSession::MQTT(mqtt) => mqtt.finish_request(),
         }
     }
 
@@ -84,6 +91,7 @@ impl ClientSession {
         match self {
             ClientSession::H1(h1) => h1.read_timeout = Some(timeout),
             ClientSession::H2(h2) => h2.read_timeout = Some(timeout),
+            ClientSession::MQTT(mqtt) => mqtt.read_timeout = Some(timeout),
         }
     }
 
@@ -96,6 +104,7 @@ impl ClientSession {
         match self {
             ClientSession::H1(h1) => h1.write_timeout = Some(timeout),
             ClientSession::H2(_) => { /* no write timeout because the actual write happens async*/ }
+            ClientSession::MQTT(_) => {}
         }
     }
 
@@ -109,6 +118,7 @@ impl ClientSession {
                 Ok(())
             }
             ClientSession::H2(h2) => h2.read_response_header().await,
+            ClientSession::MQTT(_) => Ok(()),
         }
     }
 
@@ -119,6 +129,7 @@ impl ClientSession {
         match self {
             ClientSession::H1(h1) => h1.read_body_bytes().await,
             ClientSession::H2(h2) => h2.read_response_body().await,
+            ClientSession::MQTT(mqtt) => mqtt.read_response().await,
         }
     }
 
@@ -127,6 +138,7 @@ impl ClientSession {
         match self {
             ClientSession::H1(h1) => h1.is_body_done(),
             ClientSession::H2(h2) => h2.response_finished(),
+            ClientSession::MQTT(_) => true,
         }
     }
 
@@ -137,6 +149,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => s.shutdown().await,
             Self::H2(s) => s.shutdown(),
+            Self::MQTT(s) => s.shutdown(),
         }
     }
 
@@ -147,6 +160,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => s.resp_header(),
             Self::H2(s) => s.response_header(),
+            Self::MQTT(_) => None,
         }
     }
 
@@ -158,6 +172,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => Some(s.digest()),
             Self::H2(s) => s.digest(),
+            Self::MQTT(s) => s.digest(),
         }
     }
 
@@ -168,6 +183,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => Some(s.digest_mut()),
             Self::H2(s) => s.digest_mut(),
+            Self::MQTT(s) => s.digest_mut(),
         }
     }
 
@@ -176,6 +192,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => s.server_addr(),
             Self::H2(s) => s.server_addr(),
+            Self::MQTT(s) => s.server_addr(),
         }
     }
 
@@ -184,6 +201,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => s.client_addr(),
             Self::H2(s) => s.client_addr(),
+            ClientSession::MQTT(s) => s.client_addr(),
         }
     }
 
@@ -193,6 +211,7 @@ impl ClientSession {
         match self {
             Self::H1(s) => Some(s.stream()),
             Self::H2(_) => None,
+            Self::MQTT(_) => None,
         }
     }
 }

@@ -14,15 +14,16 @@
 
 //! Abstractions and implementations for protocols including TCP, TLS and HTTP
 
+pub mod client;
 mod digest;
 pub mod http;
 pub mod l4;
+pub mod mqtt;
 pub mod raw_connect;
 pub mod server;
 pub mod tls;
 #[cfg(windows)]
 mod windows;
-pub mod client;
 
 pub use digest::{
     Digest, GetProxyDigest, GetSocketDigest, GetTimingDigest, ProtoDigest, SocketDigest,

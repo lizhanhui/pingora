@@ -227,6 +227,10 @@ impl<SV> HttpProxy<SV> {
 
                         (server_reused, error)
                     }
+
+                    ClientSession::MQTT(_session) => {
+                        todo!()
+                    }
                 };
                 (
                     server_reused,

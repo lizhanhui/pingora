@@ -85,6 +85,7 @@ impl Connector {
         match session {
             ClientSession::H1(h1) => self.h1.release_http_session(h1, peer, idle_timeout).await,
             ClientSession::H2(h2) => self.h2.release_http_session(h2, peer, idle_timeout),
+            ClientSession::MQTT(_) => {},
         }
     }
 
@@ -123,6 +124,7 @@ mod tests {
         match &h2 {
             ClientSession::H1(_) => panic!("expect h2"),
             ClientSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
+            ClientSession::MQTT(_) => panic!("expect h2"),
         }
 
         connector.release_http_session(h2, &peer, None).await;
@@ -133,6 +135,7 @@ mod tests {
         match &h2 {
             ClientSession::H1(_) => panic!("expect h2"),
             ClientSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
+            ClientSession::MQTT(_) => panic!("expect h2"),
         }
     }
 
@@ -148,6 +151,7 @@ mod tests {
                 get_http(http, 200).await;
             }
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => {},
         }
         connector.release_http_session(h1, &peer, None).await;
 
@@ -157,6 +161,7 @@ mod tests {
         match &mut h1 {
             ClientSession::H1(_) => {}
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
     }
 
@@ -178,6 +183,7 @@ mod tests {
                 get_http(http, 200).await;
             }
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
         connector.release_http_session(h1, &peer, None).await;
 
@@ -190,6 +196,7 @@ mod tests {
         match &mut h1 {
             ClientSession::H1(_) => {}
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
     }
 
@@ -207,6 +214,7 @@ mod tests {
                 get_http(http, 200).await;
             }
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
         connector.release_http_session(h1, &peer, None).await;
 
@@ -217,6 +225,7 @@ mod tests {
         match &mut h1 {
             ClientSession::H1(_) => {}
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
     }
 }
