@@ -1,12 +1,12 @@
-use std::sync::Arc;
-use tokio::sync::Notify;
+use crate::Proxy;
 use pingora_core::apps::HttpServerOptions;
-use pingora_core::connectors::ConnectorOptions;
 use pingora_core::connectors::http::Connector;
+use pingora_core::connectors::ConnectorOptions;
 use pingora_core::modules::http::HttpModules;
 use pingora_core::server::configuration::ServerConf;
 use pingora_core::services::listening::Service;
-use crate::{Proxy};
+use std::sync::Arc;
+use tokio::sync::Notify;
 
 /// The concrete type that holds the user defined MQTT proxy.
 ///

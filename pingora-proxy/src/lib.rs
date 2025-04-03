@@ -67,6 +67,7 @@ use pingora_error::{Error, ErrorSource, ErrorType::*, OrErr, Result};
 
 const TASK_BUFFER_SIZE: usize = 4;
 
+mod mqtt;
 mod proxy_cache;
 mod proxy_common;
 mod proxy_h1;
@@ -74,7 +75,6 @@ mod proxy_h2;
 mod proxy_purge;
 mod proxy_trait;
 mod subrequest;
-mod mqtt;
 
 use subrequest::Ctx as SubReqCtx;
 
@@ -83,8 +83,8 @@ pub use proxy_purge::PurgeStatus;
 pub use proxy_trait::{FailToProxy, Proxy};
 
 pub mod prelude {
-    pub use crate::{http_proxy_service, Proxy, Session};
     pub use crate::mqtt::{mqtt_proxy_service, MqttProxy};
+    pub use crate::{http_proxy_service, Proxy, Session};
 }
 
 /// The concrete type that holds the user defined HTTP proxy.
@@ -348,7 +348,10 @@ impl Session {
     ///
     /// This function is mostly used for testing and mocking.
     pub fn new_h1_with_modules(stream: Stream, downstream_modules: &HttpModules) -> Self {
-        Self::new(Box::new(ServerSession::new_http1(stream)), downstream_modules)
+        Self::new(
+            Box::new(ServerSession::new_http1(stream)),
+            downstream_modules,
+        )
     }
 
     pub fn as_downstream_mut(&mut self) -> &mut ServerSession {

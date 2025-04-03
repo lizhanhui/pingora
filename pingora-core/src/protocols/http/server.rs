@@ -419,10 +419,9 @@ impl ServerSession {
     pub async fn write_continue_response(&mut self) -> Result<()> {
         match self {
             Self::H1(s) => s.write_continue_response().await,
-            Self::H2(s) => s.write_response_header(
-                Box::new(ResponseHeader::build(100, Some(0))?),
-                false,
-            ),
+            Self::H2(s) => {
+                s.write_response_header(Box::new(ResponseHeader::build(100, Some(0))?), false)
+            }
         }
     }
 
