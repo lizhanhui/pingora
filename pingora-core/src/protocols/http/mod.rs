@@ -25,7 +25,7 @@ pub mod server;
 pub mod v1;
 pub mod v2;
 
-pub use server::Session as ServerSession;
+pub use server::ServerSession;
 
 /// The Pingora server name string
 pub const SERVER_NAME: &[u8; 7] = b"Pingora";

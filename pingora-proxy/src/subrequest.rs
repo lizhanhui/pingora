@@ -27,7 +27,7 @@ use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncWrite, Error, ReadBuf};
 
 // An async IO stream that returns the request when being read from and dumps the data to the void
-// when being write to
+// when being written to
 #[derive(Debug)]
 pub(crate) struct DummyIO(Cursor<Vec<u8>>);
 
@@ -160,11 +160,11 @@ impl Ctx {
     }
 }
 
-use crate::HttpSession;
+use crate::ServerSession;
 
-pub(crate) fn create_dummy_session(parsed_session: &HttpSession) -> HttpSession {
+pub(crate) fn create_dummy_session(parsed_session: &ServerSession) -> ServerSession {
     // TODO: check if there is req body, we don't capture the body for now
-    HttpSession::new_http1(Box::new(DummyIO::new(&parsed_session.to_h1_raw())))
+    ServerSession::new_http1(Box::new(DummyIO::new(&parsed_session.to_h1_raw())))
 }
 
 #[tokio::test]
@@ -173,7 +173,7 @@ async fn test_dummy_request() {
 
     let input = b"GET / HTTP/1.1\r\n\r\n";
     let mock_io = Builder::new().read(&input[..]).build();
-    let mut req = HttpSession::new_http1(Box::new(mock_io));
+    let mut req = ServerSession::new_http1(Box::new(mock_io));
     req.read_request().await.unwrap();
     assert_eq!(input.as_slice(), req.to_h1_raw());
 

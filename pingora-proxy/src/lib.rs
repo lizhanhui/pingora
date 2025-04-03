@@ -56,7 +56,7 @@ use pingora_core::modules::http::{HttpModuleCtx, HttpModules};
 use pingora_core::protocols::http::client::HttpSession as ClientSession;
 use pingora_core::protocols::http::v1::client::HttpSession as HttpSessionV1;
 use pingora_core::protocols::http::HttpTask;
-use pingora_core::protocols::http::ServerSession as HttpSession;
+use pingora_core::protocols::http::ServerSession;
 use pingora_core::protocols::http::SERVER_NAME;
 use pingora_core::protocols::Stream;
 use pingora_core::protocols::{Digest, UniqueID};
@@ -121,8 +121,8 @@ impl<SV> HttpProxy<SV> {
 
     async fn handle_new_request(
         &self,
-        mut downstream_session: Box<HttpSession>,
-    ) -> Option<Box<HttpSession>>
+        mut downstream_session: Box<ServerSession>,
+    ) -> Option<Box<ServerSession>>
     where
         SV: Proxy + Send + Sync,
         SV::CTX: Send + Sync,
@@ -307,7 +307,7 @@ use pingora_core::protocols::http::compression::ResponseCompressionCtx;
 /// behavior.
 pub struct Session {
     /// the HTTP session to downstream (the client)
-    pub downstream_session: Box<HttpSession>,
+    pub downstream_session: Box<ServerSession>,
     /// The interface to control HTTP caching
     pub cache: HttpCache,
     /// (de)compress responses coming into the proxy (from upstream)
@@ -322,7 +322,7 @@ pub struct Session {
 
 impl Session {
     fn new(
-        downstream_session: impl Into<Box<HttpSession>>,
+        downstream_session: impl Into<Box<ServerSession>>,
         downstream_modules: &HttpModules,
     ) -> Self {
         Session {
@@ -341,21 +341,21 @@ impl Session {
     /// This function is mostly used for testing and mocking.
     pub fn new_h1(stream: Stream) -> Self {
         let modules = HttpModules::new();
-        Self::new(Box::new(HttpSession::new_http1(stream)), &modules)
+        Self::new(Box::new(ServerSession::new_http1(stream)), &modules)
     }
 
     /// Create a new [Session] from the given [Stream] with modules
     ///
     /// This function is mostly used for testing and mocking.
     pub fn new_h1_with_modules(stream: Stream, downstream_modules: &HttpModules) -> Self {
-        Self::new(Box::new(HttpSession::new_http1(stream)), downstream_modules)
+        Self::new(Box::new(ServerSession::new_http1(stream)), downstream_modules)
     }
 
-    pub fn as_downstream_mut(&mut self) -> &mut HttpSession {
+    pub fn as_downstream_mut(&mut self) -> &mut ServerSession {
         &mut self.downstream_session
     }
 
-    pub fn as_downstream(&self) -> &HttpSession {
+    pub fn as_downstream(&self) -> &ServerSession {
         &self.downstream_session
     }
 
@@ -440,14 +440,14 @@ impl Session {
     }
 }
 
-impl AsRef<HttpSession> for Session {
-    fn as_ref(&self) -> &HttpSession {
+impl AsRef<ServerSession> for Session {
+    fn as_ref(&self) -> &ServerSession {
         &self.downstream_session
     }
 }
 
-impl AsMut<HttpSession> for Session {
-    fn as_mut(&mut self) -> &mut HttpSession {
+impl AsMut<ServerSession> for Session {
+    fn as_mut(&mut self) -> &mut ServerSession {
         &mut self.downstream_session
     }
 }
@@ -455,7 +455,7 @@ impl AsMut<HttpSession> for Session {
 use std::ops::{Deref, DerefMut};
 
 impl Deref for Session {
-    type Target = HttpSession;
+    type Target = ServerSession;
 
     fn deref(&self) -> &Self::Target {
         &self.downstream_session
@@ -719,7 +719,7 @@ error[E0391]: cycle detected when computing type of `proxy_cache::<impl at pingo
 trait Subrequest {
     async fn process_subrequest(
         self: &Arc<Self>,
-        session: Box<HttpSession>,
+        session: Box<ServerSession>,
         sub_req_ctx: Box<SubReqCtx>,
     );
 }
@@ -732,7 +732,7 @@ where
 {
     async fn process_subrequest(
         self: &Arc<Self>,
-        session: Box<HttpSession>,
+        session: Box<ServerSession>,
         sub_req_ctx: Box<SubReqCtx>,
     ) {
         debug!("starting subrequest");
@@ -761,7 +761,7 @@ where
 {
     async fn process_new_http(
         self: &Arc<Self>,
-        session: HttpSession,
+        session: ServerSession,
         shutdown: &ShutdownWatch,
     ) -> Option<Stream> {
         let session = Box::new(session);

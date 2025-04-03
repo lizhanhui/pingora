@@ -27,18 +27,18 @@ use pingora_http::{RequestHeader, ResponseHeader};
 use std::time::Duration;
 
 /// HTTP server session object for both HTTP/1.x and HTTP/2
-pub enum Session {
+pub enum ServerSession {
     H1(SessionV1),
     H2(SessionV2),
 }
 
-impl Session {
-    /// Create a new [`Session`] from an established connection for HTTP/1.x
+impl ServerSession {
+    /// Create a new [`ServerSession`] from an established connection for HTTP/1.x
     pub fn new_http1(stream: Stream) -> Self {
         Self::H1(SessionV1::new(stream))
     }
 
-    /// Create a new [`Session`] from an established HTTP/2 stream
+    /// Create a new [`ServerSession`] from an established HTTP/2 stream
     pub fn new_http2(session: SessionV2) -> Self {
         Self::H2(session)
     }
@@ -343,7 +343,7 @@ impl Session {
         // rather than a misleading the client with 'keep-alive'
         self.set_keepalive(None);
 
-        // If a response was already written and it's not informational 1xx, return.
+        // If a response was already written, and it's not informational 1xx, return.
         // The only exception is an informational 101 Switching Protocols, which is treated
         // as final response https://www.rfc-editor.org/rfc/rfc9110#section-15.2.2.
         if let Some(resp_written) = self.response_written().as_ref() {
@@ -420,7 +420,7 @@ impl Session {
         match self {
             Self::H1(s) => s.write_continue_response().await,
             Self::H2(s) => s.write_response_header(
-                Box::new(ResponseHeader::build(100, Some(0)).unwrap()),
+                Box::new(ResponseHeader::build(100, Some(0))?),
                 false,
             ),
         }
