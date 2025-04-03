@@ -17,17 +17,17 @@ use pingora_error::Result;
 use pingora_http::{RequestHeader, ResponseHeader};
 use std::time::Duration;
 
-use super::v1::client::HttpSession as Http1Session;
-use super::v2::client::Http2Session;
+use crate::protocols::http::v1::client::HttpSession as Http1Session;
+use crate::protocols::http::v2::client::Http2Session;
 use crate::protocols::{Digest, SocketAddr, Stream};
 
 /// A type for Http client session. It can be either a Http1 connection or a Http2 stream.
-pub enum HttpSession {
+pub enum ClientSession {
     H1(Http1Session),
     H2(Http2Session),
 }
 
-impl HttpSession {
+impl ClientSession {
     pub fn as_http1(&self) -> Option<&Http1Session> {
         match self {
             Self::H1(s) => Some(s),
@@ -46,34 +46,34 @@ impl HttpSession {
     /// sending request body if any.
     pub async fn write_request_header(&mut self, req: Box<RequestHeader>) -> Result<()> {
         match self {
-            HttpSession::H1(h1) => {
+            ClientSession::H1(h1) => {
                 h1.write_request_header(req).await?;
                 Ok(())
             }
-            HttpSession::H2(h2) => h2.write_request_header(req, false),
+            ClientSession::H2(h2) => h2.write_request_header(req, false),
         }
     }
 
     /// Write a chunk of the request body.
     pub async fn write_request_body(&mut self, data: Bytes, end: bool) -> Result<()> {
         match self {
-            HttpSession::H1(h1) => {
+            ClientSession::H1(h1) => {
                 // TODO: maybe h1 should also have the concept of `end`
                 h1.write_body(&data).await?;
                 Ok(())
             }
-            HttpSession::H2(h2) => h2.write_request_body(data, end).await,
+            ClientSession::H2(h2) => h2.write_request_body(data, end).await,
         }
     }
 
     /// Signal that the request body has ended
     pub async fn finish_request_body(&mut self) -> Result<()> {
         match self {
-            HttpSession::H1(h1) => {
+            ClientSession::H1(h1) => {
                 h1.finish_body().await?;
                 Ok(())
             }
-            HttpSession::H2(h2) => h2.finish_request_body(),
+            ClientSession::H2(h2) => h2.finish_request_body(),
         }
     }
 
@@ -82,8 +82,8 @@ impl HttpSession {
     /// The timeout is per read operation, not on the overall time reading the entire response
     pub fn set_read_timeout(&mut self, timeout: Duration) {
         match self {
-            HttpSession::H1(h1) => h1.read_timeout = Some(timeout),
-            HttpSession::H2(h2) => h2.read_timeout = Some(timeout),
+            ClientSession::H1(h1) => h1.read_timeout = Some(timeout),
+            ClientSession::H2(h2) => h2.read_timeout = Some(timeout),
         }
     }
 
@@ -94,8 +94,8 @@ impl HttpSession {
     /// This is a noop for h2.
     pub fn set_write_timeout(&mut self, timeout: Duration) {
         match self {
-            HttpSession::H1(h1) => h1.write_timeout = Some(timeout),
-            HttpSession::H2(_) => { /* no write timeout because the actual write happens async*/ }
+            ClientSession::H1(h1) => h1.write_timeout = Some(timeout),
+            ClientSession::H2(_) => { /* no write timeout because the actual write happens async*/ }
         }
     }
 
@@ -104,11 +104,11 @@ impl HttpSession {
     /// informational headers.
     pub async fn read_response_header(&mut self) -> Result<()> {
         match self {
-            HttpSession::H1(h1) => {
+            ClientSession::H1(h1) => {
                 h1.read_response().await?;
                 Ok(())
             }
-            HttpSession::H2(h2) => h2.read_response_header().await,
+            ClientSession::H2(h2) => h2.read_response_header().await,
         }
     }
 
@@ -117,16 +117,16 @@ impl HttpSession {
     /// `None` when no more body to read.
     pub async fn read_response_body(&mut self) -> Result<Option<Bytes>> {
         match self {
-            HttpSession::H1(h1) => h1.read_body_bytes().await,
-            HttpSession::H2(h2) => h2.read_response_body().await,
+            ClientSession::H1(h1) => h1.read_body_bytes().await,
+            ClientSession::H2(h2) => h2.read_response_body().await,
         }
     }
 
     /// No (more) body to read
     pub fn response_done(&mut self) -> bool {
         match self {
-            HttpSession::H1(h1) => h1.is_body_done(),
-            HttpSession::H2(h2) => h2.response_finished(),
+            ClientSession::H1(h1) => h1.is_body_done(),
+            ClientSession::H2(h2) => h2.response_finished(),
         }
     }
 

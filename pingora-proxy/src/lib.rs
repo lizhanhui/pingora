@@ -53,7 +53,7 @@ use pingora_core::apps::{HttpServerApp, HttpServerOptions};
 use pingora_core::connectors::{http::Connector, ConnectorOptions};
 use pingora_core::modules::http::compression::ResponseCompressionBuilder;
 use pingora_core::modules::http::{HttpModuleCtx, HttpModules};
-use pingora_core::protocols::http::client::HttpSession as ClientSession;
+use pingora_core::protocols::client::ClientSession;
 use pingora_core::protocols::http::v1::client::HttpSession as HttpSessionV1;
 use pingora_core::protocols::http::HttpTask;
 use pingora_core::protocols::http::ServerSession;

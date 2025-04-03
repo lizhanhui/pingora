@@ -16,7 +16,6 @@
 
 mod body_buffer;
 pub mod bridge;
-pub mod client;
 pub mod compression;
 pub mod conditional_filter;
 pub(crate) mod date;

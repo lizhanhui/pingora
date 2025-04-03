@@ -15,7 +15,7 @@
 //! Connecting to HTTP servers
 
 use crate::connectors::ConnectorOptions;
-use crate::protocols::http::client::HttpSession;
+use crate::protocols::client::ClientSession;
 use crate::upstreams::peer::Peer;
 use pingora_error::Result;
 use std::time::Duration;
@@ -36,13 +36,13 @@ impl Connector {
         }
     }
 
-    /// Get an [HttpSession] to the given server.
+    /// Get an [ClientSession] to the given server.
     ///
     /// The second return value indicates whether the session is connected via a reused stream.
     pub async fn get_http_session<P: Peer + Send + Sync + 'static>(
         &self,
         peer: &P,
-    ) -> Result<(HttpSession, bool)> {
+    ) -> Result<(ClientSession, bool)> {
         // NOTE: maybe TODO: we do not yet enforce that only TLS traffic can use h2, which is the
         // de facto requirement for h2, because non TLS traffic lack the negotiation mechanism.
 
@@ -52,12 +52,12 @@ impl Connector {
             .map_or(true, |o| o.alpn.get_max_http_version() == 1);
         if h1_only {
             let (h1, reused) = self.h1.get_http_session(peer).await?;
-            Ok((HttpSession::H1(h1), reused))
+            Ok((ClientSession::H1(h1), reused))
         } else {
             // the peer allows h2, we first check the h2 reuse pool
             let reused_h2 = self.h2.reused_http_session(peer).await?;
             if let Some(h2) = reused_h2 {
-                return Ok((HttpSession::H2(h2), true));
+                return Ok((ClientSession::H2(h2), true));
             }
             let h2_only = peer
                 .get_peer_options()
@@ -68,7 +68,7 @@ impl Connector {
                 // This is because the server may not support h2 at all, connections to
                 // the server could all be h1.
                 if let Some(h1) = self.h1.reused_http_session(peer).await {
-                    return Ok((HttpSession::H1(h1), true));
+                    return Ok((ClientSession::H1(h1), true));
                 }
             }
             let session = self.h2.new_http_session(peer).await?;
@@ -78,13 +78,13 @@ impl Connector {
 
     pub async fn release_http_session<P: Peer + Send + Sync + 'static>(
         &self,
-        session: HttpSession,
+        session: ClientSession,
         peer: &P,
         idle_timeout: Option<Duration>,
     ) {
         match session {
-            HttpSession::H1(h1) => self.h1.release_http_session(h1, peer, idle_timeout).await,
-            HttpSession::H2(h2) => self.h2.release_http_session(h2, peer, idle_timeout),
+            ClientSession::H1(h1) => self.h1.release_http_session(h1, peer, idle_timeout).await,
+            ClientSession::H2(h2) => self.h2.release_http_session(h2, peer, idle_timeout),
         }
     }
 
@@ -121,8 +121,8 @@ mod tests {
         let (h2, reused) = connector.get_http_session(&peer).await.unwrap();
         assert!(!reused);
         match &h2 {
-            HttpSession::H1(_) => panic!("expect h2"),
-            HttpSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
+            ClientSession::H1(_) => panic!("expect h2"),
+            ClientSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
         }
 
         connector.release_http_session(h2, &peer, None).await;
@@ -131,8 +131,8 @@ mod tests {
         // reused this time
         assert!(reused);
         match &h2 {
-            HttpSession::H1(_) => panic!("expect h2"),
-            HttpSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
+            ClientSession::H1(_) => panic!("expect h2"),
+            ClientSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
         }
     }
 
@@ -144,10 +144,10 @@ mod tests {
         let (mut h1, reused) = connector.get_http_session(&peer).await.unwrap();
         assert!(!reused);
         match &mut h1 {
-            HttpSession::H1(http) => {
+            ClientSession::H1(http) => {
                 get_http(http, 200).await;
             }
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H2(_) => panic!("expect h1"),
         }
         connector.release_http_session(h1, &peer, None).await;
 
@@ -155,8 +155,8 @@ mod tests {
         // reused this time
         assert!(reused);
         match &mut h1 {
-            HttpSession::H1(_) => {}
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H1(_) => {}
+            ClientSession::H2(_) => panic!("expect h1"),
         }
     }
 
@@ -174,10 +174,10 @@ mod tests {
         let (mut h1, reused) = connector.get_http_session(&peer).await.unwrap();
         assert!(!reused);
         match &mut h1 {
-            HttpSession::H1(http) => {
+            ClientSession::H1(http) => {
                 get_http(http, 200).await;
             }
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H2(_) => panic!("expect h1"),
         }
         connector.release_http_session(h1, &peer, None).await;
 
@@ -188,8 +188,8 @@ mod tests {
         // reused this time
         assert!(reused);
         match &mut h1 {
-            HttpSession::H1(_) => {}
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H1(_) => {}
+            ClientSession::H2(_) => panic!("expect h1"),
         }
     }
 
@@ -203,10 +203,10 @@ mod tests {
         let (mut h1, reused) = connector.get_http_session(&peer).await.unwrap();
         assert!(!reused);
         match &mut h1 {
-            HttpSession::H1(http) => {
+            ClientSession::H1(http) => {
                 get_http(http, 200).await;
             }
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H2(_) => panic!("expect h1"),
         }
         connector.release_http_session(h1, &peer, None).await;
 
@@ -215,8 +215,8 @@ mod tests {
         // reused this time
         assert!(reused);
         match &mut h1 {
-            HttpSession::H1(_) => {}
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H1(_) => {}
+            ClientSession::H2(_) => panic!("expect h1"),
         }
     }
 }

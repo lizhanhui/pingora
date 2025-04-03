@@ -22,6 +22,7 @@ pub mod server;
 pub mod tls;
 #[cfg(windows)]
 mod windows;
+pub mod client;
 
 pub use digest::{
     Digest, GetProxyDigest, GetSocketDigest, GetTimingDigest, ProtoDigest, SocketDigest,

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::HttpSession;
+use super::ClientSession;
 use crate::connectors::{ConnectorOptions, TransportConnector};
 use crate::protocols::http::v1::client::HttpSession as Http1Session;
 use crate::protocols::http::v2::client::{drive_connection, Http2Session};
@@ -241,7 +241,7 @@ impl Connector {
     pub async fn new_http_session<P: Peer + Send + Sync + 'static>(
         &self,
         peer: &P,
-    ) -> Result<HttpSession> {
+    ) -> Result<ClientSession> {
         let stream = self.transport.new_stream(peer).await?;
 
         // check alpn
@@ -249,7 +249,7 @@ impl Connector {
             Some(ALPN::H2) => { /* continue */ }
             Some(_) => {
                 // H2 not supported
-                return Ok(HttpSession::H1(Http1Session::new(stream)));
+                return Ok(ClientSession::H1(Http1Session::new(stream)));
             }
             None => {
                 // if tls but no ALPN, default to h1
@@ -259,7 +259,7 @@ impl Connector {
                         .get_peer_options()
                         .map_or(true, |o| o.alpn.get_min_http_version() == 1)
                 {
-                    return Ok(HttpSession::H1(Http1Session::new(stream)));
+                    return Ok(ClientSession::H1(Http1Session::new(stream)));
                 }
                 // else: min http version=H2 over plaintext, there is no ALPN anyways, we trust
                 // the caller that the server speaks h2c
@@ -274,7 +274,7 @@ impl Connector {
         if conn.more_streams_allowed() {
             self.in_use_pool.insert(peer.reuse_hash(), conn);
         }
-        Ok(HttpSession::H2(h2_stream))
+        Ok(ClientSession::H2(h2_stream))
     }
 
     /// Try to create a new http2 stream from any existing H2 connection.
@@ -470,8 +470,8 @@ mod tests {
         peer.options.set_http_version(2, 2);
         let h2 = connector.new_http_session(&peer).await.unwrap();
         match h2 {
-            HttpSession::H1(_) => panic!("expect h2"),
-            HttpSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
+            ClientSession::H1(_) => panic!("expect h2"),
+            ClientSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
         }
     }
 
@@ -484,8 +484,8 @@ mod tests {
         peer.options.set_http_version(1, 1);
         let h2 = connector.new_http_session(&peer).await.unwrap();
         match h2 {
-            HttpSession::H1(_) => {}
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H1(_) => {}
+            ClientSession::H2(_) => panic!("expect h1"),
         }
     }
 
@@ -496,8 +496,8 @@ mod tests {
         peer.options.set_http_version(2, 1);
         let h2 = connector.new_http_session(&peer).await.unwrap();
         match h2 {
-            HttpSession::H1(_) => {}
-            HttpSession::H2(_) => panic!("expect h1"),
+            ClientSession::H1(_) => {}
+            ClientSession::H2(_) => panic!("expect h1"),
         }
     }
 
@@ -510,8 +510,8 @@ mod tests {
         peer.options.max_h2_streams = 1;
         let h2 = connector.new_http_session(&peer).await.unwrap();
         let h2_1 = match h2 {
-            HttpSession::H1(_) => panic!("expect h2"),
-            HttpSession::H2(h2_stream) => h2_stream,
+            ClientSession::H1(_) => panic!("expect h2"),
+            ClientSession::H2(h2_stream) => h2_stream,
         };
 
         let id = h2_1.conn.id();
@@ -542,8 +542,8 @@ mod tests {
         peer.options.max_h2_streams = 3;
         let h2 = connector.new_http_session(&peer).await.unwrap();
         let h2_1 = match h2 {
-            HttpSession::H1(_) => panic!("expect h2"),
-            HttpSession::H2(h2_stream) => h2_stream,
+            ClientSession::H1(_) => panic!("expect h2"),
+            ClientSession::H2(h2_stream) => h2_stream,
         };
 
         let id = h2_1.conn.id();
