@@ -22,13 +22,13 @@
 //! - TLSv1.3, mutual TLS, customizable CA
 //! - Request/Response scanning, modification or rejection
 //! - Dynamic upstream selection
-//! - Configurable retry and failover
-//! - Fully programmable and customizable at any stage of a HTTP request
+//! - Configurable retry and fail-over
+//! - Fully programmable and customizable at any stage of an HTTP request
 //!
 //! # How to use
 //!
 //! Users of this crate defines their proxy by implementing [Proxy] trait, which contains the
-//! callbacks to be invoked at each stage of a HTTP request.
+//! callbacks to be invoked at each stage of an HTTP request.
 //!
 //! Then the service can be passed into [`http_proxy_service()`] for a [pingora_core::server::Server] to
 //! run it.
@@ -429,7 +429,7 @@ impl Session {
                         // returns a buffer.
                         //
                         // Note, this will not work if end of stream has already
-                        // been seen or we've written content-length bytes.
+                        // been seen, or we've written content-length bytes.
                         *task = HttpTask::Body(Some(buf), true);
                     }
                 }
