@@ -21,21 +21,21 @@ impl MqttSession {
 
     pub(crate) fn write_response_header(
         &self,
-        response_header: Box<ResponseHeader>,
-        end: bool,
+        _response_header: Box<ResponseHeader>,
+        _end: bool,
     ) -> Result<()> {
         todo!()
     }
 
     pub(crate) fn write_response_header_ref(
         &self,
-        response_header: &ResponseHeader,
-        end: bool,
+        _response_header: &ResponseHeader,
+        _end: bool,
     ) -> Result<()> {
         todo!()
     }
 
-    pub(crate) async fn write_body(&self, data: Bytes, end: bool) -> Result<()> {
+    pub(crate) async fn write_body(&self, _data: Bytes, _end: bool) -> Result<()> {
         todo!()
     }
 
@@ -51,7 +51,7 @@ impl MqttSession {
         todo!()
     }
 
-    pub(crate) async fn read_body_or_idle(&self, no_body_expected: bool) -> Result<Option<Bytes>> {
+    pub(crate) async fn read_body_or_idle(&self, _no_body_expected: bool) -> Result<Option<Bytes>> {
         todo!()
     }
 

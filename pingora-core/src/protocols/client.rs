@@ -55,7 +55,7 @@ impl ClientSession {
                 Ok(())
             }
             ClientSession::H2(h2) => h2.write_request_header(req, false),
-            ClientSession::MQTT(session) => Ok(()),
+            ClientSession::MQTT(_session) => Ok(()),
         }
     }
 

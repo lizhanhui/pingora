@@ -15,6 +15,7 @@
 //! The abstraction and implementation interface for service application logic
 
 pub mod http_app;
+mod mqtt_app;
 pub mod prometheus_http_app;
 
 use std::sync::Arc;
@@ -38,7 +39,7 @@ pub trait ServerApp {
     /// If not reusable, `None` should be returned.
     ///
     /// The `shutdown` argument will change from `false` to `true` when the server receives a
-    /// signal to shutdown. This argument allows the application to react accordingly.
+    /// signal to shut down. This argument allows the application to react accordingly.
     async fn process_new(
         self: &Arc<Self>,
         session: Stream,

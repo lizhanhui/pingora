@@ -28,7 +28,7 @@ use pingora_cache::{
     RespCacheable,
 };
 use pingora_cache::{ForcedInvalidationKind, PurgeType, VarianceBuilder};
-use pingora_core::apps::{HttpServerApp, HttpServerOptions};
+use pingora_core::apps::http_app::{HttpServerApp, HttpServerOptions};
 use pingora_core::modules::http::compression::ResponseCompression;
 use pingora_core::protocols::{l4::socket::SocketAddr, Digest};
 use pingora_core::server::configuration::Opt;

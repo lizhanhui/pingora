@@ -472,6 +472,7 @@ mod tests {
         match h2 {
             ClientSession::H1(_) => panic!("expect h2"),
             ClientSession::H2(h2_stream) => assert!(!h2_stream.ping_timedout()),
+            ClientSession::MQTT(_) => panic!("expect h2"),
         }
     }
 
@@ -486,6 +487,7 @@ mod tests {
         match h2 {
             ClientSession::H1(_) => {}
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
     }
 
@@ -498,6 +500,7 @@ mod tests {
         match h2 {
             ClientSession::H1(_) => {}
             ClientSession::H2(_) => panic!("expect h1"),
+            ClientSession::MQTT(_) => panic!("expect h1"),
         }
     }
 
@@ -512,6 +515,7 @@ mod tests {
         let h2_1 = match h2 {
             ClientSession::H1(_) => panic!("expect h2"),
             ClientSession::H2(h2_stream) => h2_stream,
+            ClientSession::MQTT(_) => panic!("expect h2"),
         };
 
         let id = h2_1.conn.id();
@@ -544,6 +548,7 @@ mod tests {
         let h2_1 = match h2 {
             ClientSession::H1(_) => panic!("expect h2"),
             ClientSession::H2(h2_stream) => h2_stream,
+            ClientSession::MQTT(_) => panic!("expect h2"),
         };
 
         let id = h2_1.conn.id();
