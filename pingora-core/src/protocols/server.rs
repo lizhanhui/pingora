@@ -18,6 +18,7 @@ use crate::protocols::http::error_resp;
 use crate::protocols::http::v1::server::HttpSession as SessionV1;
 use crate::protocols::http::v2::server::HttpSession as SessionV2;
 use crate::protocols::http::HttpTask;
+use crate::protocols::mqtt::server::MqttSession;
 use crate::protocols::{Digest, SocketAddr, Stream};
 use bytes::Bytes;
 use http::HeaderValue;
@@ -30,6 +31,7 @@ use std::time::Duration;
 pub enum ServerSession {
     H1(SessionV1),
     H2(SessionV2),
+    MQTT(MqttSession),
 }
 
 impl ServerSession {
@@ -61,6 +63,8 @@ impl ServerSession {
             }
             // This call will always return `Ok(true)` for Http2 because the request is already read
             Self::H2(_) => Ok(true),
+            // MQTT shall be similar to HTTP2
+            Self::MQTT(_) => Ok(true),
         }
     }
 
@@ -71,6 +75,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.req_header(),
             Self::H2(s) => s.req_header(),
+            Self::MQTT(s) => s.req_header(),
         }
     }
 
@@ -81,6 +86,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.req_header_mut(),
             Self::H2(s) => s.req_header_mut(),
+            Self::MQTT(s) => s.req_header_mut(),
         }
     }
 
@@ -103,6 +109,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.read_body_bytes().await,
             Self::H2(s) => s.read_body_bytes().await,
+            Self::MQTT(s) => s.read_body_bytes().await,
         }
     }
 
@@ -130,6 +137,7 @@ impl ServerSession {
                 Ok(())
             }
             Self::H2(s) => s.write_response_header(resp, false),
+            Self::MQTT(s) => s.write_response_header(resp, false),
         }
     }
 
@@ -141,6 +149,7 @@ impl ServerSession {
                 Ok(())
             }
             Self::H2(s) => s.write_response_header_ref(resp, false),
+            Self::MQTT(s) => s.write_response_header_ref(resp, false),
         }
     }
 
@@ -158,6 +167,7 @@ impl ServerSession {
                 Ok(())
             }
             Self::H2(s) => s.write_body(data, end).await,
+            Self::MQTT(s) => s.write_body(data, end).await,
         }
     }
 
@@ -166,6 +176,7 @@ impl ServerSession {
         match self {
             Self::H1(_) => Ok(()), // TODO: support trailers for h1
             Self::H2(s) => s.write_trailers(trailers),
+            Self::MQTT(_) => Ok(()),
         }
     }
 
@@ -183,6 +194,7 @@ impl ServerSession {
                 s.finish()?;
                 Ok(None)
             }
+            Self::MQTT(_) => Ok(None),
         }
     }
 
@@ -190,6 +202,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.response_duplex_vec(tasks).await,
             Self::H2(s) => s.response_duplex_vec(tasks).await,
+            Self::MQTT(_) => Ok(true),
         }
     }
 
@@ -199,6 +212,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.set_server_keepalive(duration),
             Self::H2(_) => {}
+            Self::MQTT(_) => {}
         }
     }
 
@@ -210,6 +224,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.set_read_timeout(timeout),
             Self::H2(_) => {}
+            Self::MQTT(_) => {}
         }
     }
 
@@ -222,6 +237,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.set_write_timeout(timeout),
             Self::H2(_) => {}
+            Self::MQTT(_) => {}
         }
     }
 
@@ -239,6 +255,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.set_min_send_rate(rate),
             Self::H2(_) => {}
+            Self::MQTT(_) => {}
         }
     }
 
@@ -252,6 +269,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.set_ignore_info_resp(ignore),
             Self::H2(_) => {} // always ignored
+            Self::MQTT(_) => {}
         }
     }
 
@@ -261,6 +279,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.request_summary(),
             Self::H2(s) => s.request_summary(),
+            Self::MQTT(s) => s.request_summary(),
         }
     }
 
@@ -270,6 +289,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.response_written(),
             Self::H2(s) => s.response_written(),
+            Self::MQTT(_) => None,
         }
     }
 
@@ -280,6 +300,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.shutdown().await,
             Self::H2(s) => s.shutdown(),
+            Self::MQTT(s) => s.shutdown(),
         }
     }
 
@@ -287,6 +308,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.get_headers_raw_bytes(),
             Self::H2(s) => s.pseudo_raw_h1_request_header(),
+            Self::MQTT(_) => unreachable!(),
         }
     }
 
@@ -295,6 +317,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.is_body_done(),
             Self::H2(s) => s.is_body_done(),
+            Self::MQTT(_) => true,
         }
     }
 
@@ -306,6 +329,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.finish_body().await.map(|_| ()),
             Self::H2(s) => s.finish(),
+            Self::MQTT(_) => Ok(()),
         }
     }
 
@@ -368,6 +392,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.is_body_empty(),
             Self::H2(s) => s.is_body_empty(),
+            Self::MQTT(_) => false,
         }
     }
 
@@ -375,6 +400,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.retry_buffer_truncated(),
             Self::H2(s) => s.retry_buffer_truncated(),
+            Self::MQTT(_) => false,
         }
     }
 
@@ -382,6 +408,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.enable_retry_buffering(),
             Self::H2(s) => s.enable_retry_buffering(),
+            Self::MQTT(_) => {}
         }
     }
 
@@ -389,6 +416,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.get_retry_buffer(),
             Self::H2(s) => s.get_retry_buffer(),
+            Self::MQTT(s) => s.get_retry_buffer(),
         }
     }
 
@@ -398,6 +426,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.read_body_or_idle(no_body_expected).await,
             Self::H2(s) => s.read_body_or_idle(no_body_expected).await,
+            Self::MQTT(s) => s.read_body_or_idle(no_body_expected).await,
         }
     }
 
@@ -405,6 +434,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => Some(s),
             Self::H2(_) => None,
+            Self::MQTT(_) => None,
         }
     }
 
@@ -412,6 +442,7 @@ impl ServerSession {
         match self {
             Self::H1(_) => None,
             Self::H2(s) => Some(s),
+            Self::MQTT(_) => None,
         }
     }
 
@@ -422,6 +453,7 @@ impl ServerSession {
             Self::H2(s) => {
                 s.write_response_header(Box::new(ResponseHeader::build(100, Some(0))?), false)
             }
+            Self::MQTT(_) => Ok(()),
         }
     }
 
@@ -430,6 +462,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.is_upgrade_req(),
             Self::H2(_) => false,
+            Self::MQTT(_) => false,
         }
     }
 
@@ -438,6 +471,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.body_bytes_sent(),
             Self::H2(s) => s.body_bytes_sent(),
+            Self::MQTT(s) => s.body_bytes_sent(),
         }
     }
 
@@ -446,6 +480,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.body_bytes_read(),
             Self::H2(s) => s.body_bytes_read(),
+            Self::MQTT(s) => s.body_bytes_read(),
         }
     }
 
@@ -454,6 +489,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => Some(s.digest()),
             Self::H2(s) => s.digest(),
+            Self::MQTT(s) => s.digest(),
         }
     }
 
@@ -464,6 +500,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => Some(s.digest_mut()),
             Self::H2(s) => s.digest_mut(),
+            Self::MQTT(s) => s.digest_mut(),
         }
     }
 
@@ -472,6 +509,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.client_addr(),
             Self::H2(s) => s.client_addr(),
+            Self::MQTT(s) => s.client_addr(),
         }
     }
 
@@ -480,6 +518,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => s.server_addr(),
             Self::H2(s) => s.server_addr(),
+            Self::MQTT(s) => s.server_addr(),
         }
     }
 
@@ -489,6 +528,7 @@ impl ServerSession {
         match self {
             Self::H1(s) => Some(s.stream()),
             Self::H2(_) => None,
+            Self::MQTT(_) => None,
         }
     }
 }
