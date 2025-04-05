@@ -20,6 +20,7 @@ mod offload;
 
 #[cfg(feature = "any_tls")]
 mod tls;
+pub mod mqtt;
 
 #[cfg(not(feature = "any_tls"))]
 use crate::tls::connectors as tls;
@@ -78,7 +79,7 @@ impl ConnectorOptions {
     /// Derive the [ConnectorOptions] from a [ServerConf]
     pub fn from_server_conf(server_conf: &ServerConf) -> Self {
         // if both pools and threads are Some(>0)
-        let offload_threadpool = server_conf
+        let offload_thread_pool = server_conf
             .upstream_connect_offload_threadpools
             .zip(server_conf.upstream_connect_offload_thread_per_pool)
             .filter(|(pools, threads)| *pools > 0 && *threads > 0);
@@ -107,7 +108,7 @@ impl ConnectorOptions {
             cert_key_file: None, // TODO: use it
             debug_ssl_keylog: server_conf.upstream_debug_ssl_keylog,
             keepalive_pool_size: server_conf.upstream_keepalive_pool_size,
-            offload_threadpool,
+            offload_threadpool: offload_thread_pool,
             bind_to_v4,
             bind_to_v6,
         }

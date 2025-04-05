@@ -1,6 +1,6 @@
 use crate::Proxy;
 use pingora_core::apps::http_app::HttpServerOptions;
-use pingora_core::connectors::http::Connector;
+use pingora_core::connectors::mqtt::Connector;
 use pingora_core::connectors::ConnectorOptions;
 use pingora_core::modules::http::HttpModules;
 use pingora_core::server::configuration::ServerConf;
@@ -13,7 +13,7 @@ use tokio::sync::Notify;
 /// Users don't need to interact with this object directly.
 pub struct MqttProxy<SV> {
     inner: SV, // TODO: name it better than inner
-    client_upstream: Connector,
+    upstream: Connector,
     shutdown: Notify,
     pub server_options: Option<HttpServerOptions>,
     pub downstream_modules: HttpModules,
@@ -24,7 +24,7 @@ impl<SV> MqttProxy<SV> {
     fn new(inner: SV, conf: Arc<ServerConf>) -> Self {
         Self {
             inner,
-            client_upstream: Connector::new(Some(ConnectorOptions::from_server_conf(&conf))),
+            upstream: Connector::new(Some(ConnectorOptions::from_server_conf(&conf))),
             shutdown: Notify::new(),
             server_options: None,
             downstream_modules: HttpModules::new(),
