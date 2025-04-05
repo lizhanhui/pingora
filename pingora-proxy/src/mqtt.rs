@@ -1,5 +1,5 @@
 use crate::Proxy;
-use pingora_core::apps::HttpServerOptions;
+use pingora_core::apps::http_app::HttpServerOptions;
 use pingora_core::connectors::http::Connector;
 use pingora_core::connectors::ConnectorOptions;
 use pingora_core::modules::http::HttpModules;

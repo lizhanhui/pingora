@@ -49,7 +49,7 @@ use tokio::sync::{mpsc, Notify};
 use tokio::time;
 
 use pingora_cache::NoCacheReason;
-use pingora_core::apps::{HttpServerApp, HttpServerOptions};
+use pingora_core::apps::http_app::{HttpServerApp, HttpServerOptions};
 use pingora_core::connectors::{http::Connector, ConnectorOptions};
 use pingora_core::modules::http::compression::ResponseCompressionBuilder;
 use pingora_core::modules::http::{HttpModuleCtx, HttpModules};
@@ -791,15 +791,15 @@ where
         self.process_request(session, ctx).await
     }
 
+    fn server_options(&self) -> Option<&HttpServerOptions> {
+        self.server_options.as_ref()
+    }
+
     async fn http_cleanup(&self) {
         // Notify all keepalived requests blocking on read_request() to abort
         self.shutdown.notify_waiters();
 
         // TODO: impl shutting down flag so that we don't need to read stack.is_shutting_down()
-    }
-
-    fn server_options(&self) -> Option<&HttpServerOptions> {
-        self.server_options.as_ref()
     }
 
     // TODO implement h2_options
